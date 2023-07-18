@@ -1,0 +1,26 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["eslint:all", "plugin:@typescript-eslint/recommended", "prettier"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "max-params": "off",
+    "capitalized-comments": "off",
+    "multiline-comment-style": "off",
+    "init-declarations": "off",
+    "sort-imports": "off",
+    "new-cap": "off",
+    "no-console": "warn",
+    "one-var": ["error", "never"]
+    // object-curly-spacing
+    // "eqeqeq": ["error", "smart"],
+    // "no-await-in-loop": "error",
+    // "no-duplicate-imports": "error",
+    // "no-constant-binary-expression": "error"
+  }
+}

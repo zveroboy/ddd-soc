@@ -1,0 +1,12 @@
+{
+  "jsc": {
+    "parser": {
+      "syntax": "typescript",
+      "decorators": true,
+      "topLevelAwait": true,
+      "dynamicImport": true,
+      "privateMethod": true
+    },
+    "target": "esnext"
+  }
+}
