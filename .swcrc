@@ -2,11 +2,21 @@
   "jsc": {
     "parser": {
       "syntax": "typescript",
-      "decorators": true,
       "topLevelAwait": true,
       "dynamicImport": true,
       "privateMethod": true
     },
-    "target": "esnext"
+    "target": "esnext",
+    "transform": {
+      "legacyDecorator": true,
+      "decoratorMetadata": true
+    },
+    "keepClassNames": true
+    // "loose": true
+  },
+  "isModule": true,
+  "sourceMaps": "inline",
+  "module": {
+    "type": "es6"
   }
 }

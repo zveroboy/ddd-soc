@@ -1,9 +1,18 @@
-import { app } from './app.js';
+import { container } from '#bootstrap/index.js';
 
-const port = process.env.PORT;
+import { Application } from './application.js';
 
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+const app = await Application.create(container);
+app.start();
+
+process.on('exit', (code) => {
+  console.log(`Caught exit ${code}`);
 });
 
-export { app }
+/**
+ * @todo consider other signals
+ */
+process.on('SIGINT', async () => {
+  await app.destroy();
+  process.exit();
+});

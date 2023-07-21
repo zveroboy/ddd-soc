@@ -9,6 +9,7 @@
     "sourceType": "module"
   },
   "rules": {
+    "class-methods-use-this": "off",
     "max-params": "off",
     "capitalized-comments": "off",
     "multiline-comment-style": "off",

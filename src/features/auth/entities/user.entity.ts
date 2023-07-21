@@ -12,4 +12,10 @@ export class User {
 
   @Column()
   password: string;
+
+  @Column()
+  confirmed: boolean;
+
+  @Column({ name: 'confirmation_token' })
+  confirmationToken: string;
 }

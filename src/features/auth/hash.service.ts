@@ -16,8 +16,12 @@ export class HashingService {
     return pbkdf2Async(data, salt, 1000, 64, `sha512`).then((hash) => hash.toString('hex'));
   }
 
+  static generateBytes(length: number): Promise<string> {
+    return randBytesAsync(length).then((hash) => hash.toString('hex'));
+  }
+
   static async hash(data: string | Buffer): Promise<string> {
-    const hexSalt = await randBytesAsync(saltBytes).then((hash) => hash.toString('hex'));
+    const hexSalt = await HashingService.generateBytes(saltBytes);
     const hexHashedData = await HashingService.hexHash(data, hexSalt);
 
     return hexHashedData + hexSalt;

@@ -1,4 +1,4 @@
 {
   "extends": "../tsconfig.json",
-  "include": ["../src/**/*", "../test/**/*"]
+  "include": ["../src/**/*", "../test/**/*", "../1689700504279-AddUserConfirmed.ts"]
 }
