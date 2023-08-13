@@ -2,10 +2,11 @@
 
 /* eslint-disable no-magic-numbers */
 import AppDataSource from '#database/data-source.js';
-import { type Mailer, TYPES } from '#features/common/index.js';
+import { EntityNotFoundError, type Mailer, TYPES } from '#features/common/index.js';
 import { inject, injectable } from 'inversify';
 
-import { LoginDto, RegisterDto } from './dto/index.js';
+import { CONFIRMATION_TOKEN_LENGTH } from './const.js';
+import { ConfirmationDto, LoginDto, RegisterDto } from './dto/index.js';
 import { User } from './entities/index.js';
 import { HashingService } from './hash.service.js';
 
@@ -15,10 +16,9 @@ export class AuthService {
   constructor(@inject(TYPES.Mailer) private mailer: Mailer) {}
 
   async registerUser({ email, password }: RegisterDto): Promise<void> {
-    const confirmationLength = 16;
     const userRepository = AppDataSource.getRepository(User);
 
-    const confirmationToken = await HashingService.generateBytes(confirmationLength);
+    const confirmationToken = await HashingService.generateBytes(CONFIRMATION_TOKEN_LENGTH);
     const hashedPassword = await HashingService.hash(password);
 
     const userFields = {
@@ -33,6 +33,9 @@ export class AuthService {
     };
 
     await userRepository.save(userFields);
+    /**
+     * Emit event instead
+     */
     await this.mailer.send(confirmationToken);
   }
 
@@ -47,5 +50,16 @@ export class AuthService {
     }
 
     return HashingService.compare(password, user.password);
+  }
+
+  async confirmUser({ token }: ConfirmationDto): Promise<void> {
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOneBy({
+      confirmationToken: token,
+    });
+
+    if (!user) {
+      throw new EntityNotFoundError('User associated with this token not found');
+    }
   }
 }

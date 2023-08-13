@@ -16,6 +16,6 @@ export class User {
   @Column()
   confirmed: boolean;
 
-  @Column({ name: 'confirmation_token' })
+  @Column({ name: 'confirmation_token', nullable: true })
   confirmationToken: string;
 }

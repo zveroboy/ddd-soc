@@ -1,8 +1,7 @@
-import { container } from '#bootstrap/index.js';
+import { ApplicationService, container } from '#application/index.js';
+import { type Logger, TYPES } from '#features/common/index.js';
 
-import { Application } from './application.js';
-
-const app = await Application.create(container);
+const app = await container.getAsync<ApplicationService>(ApplicationService);
 app.start();
 
 process.on('exit', (code) => {

@@ -4,7 +4,12 @@
       "syntax": "typescript",
       "topLevelAwait": true,
       "dynamicImport": true,
-      "privateMethod": true
+      "privateMethod": true,
+      "decorators": true,
+      "baseUrl": ".",
+      "paths": {
+        "#*": ["./build/*"]
+      }
     },
     "target": "esnext",
     "transform": {
@@ -12,11 +17,16 @@
       "decoratorMetadata": true
     },
     "keepClassNames": true
-    // "loose": true
+    // "loose": true,
   },
   "isModule": true,
   "sourceMaps": "inline",
   "module": {
     "type": "es6"
+  },
+  "env": {
+    "targets": {
+      "node": 20
+    }
   }
 }

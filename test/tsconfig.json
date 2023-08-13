@@ -1,4 +1,7 @@
 {
   "extends": "../tsconfig.json",
-  "include": ["../src/**/*", "../test/**/*", "../1689700504279-AddUserConfirmed.ts"]
+  "compilerOptions": {
+    "rootDir": ".."
+  },
+  "include": ["../src/**/*", "../test/**/*"]
 }
