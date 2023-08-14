@@ -61,6 +61,9 @@ export class AuthController implements BaseController {
     return res.status(StatusCodes.OK).send();
   };
 
+  /**
+   * @todo Move to service
+   */
   confirmHandler: RequestHandler<unknown, unknown, LoginDto> = async (req, res, next) => {
     const userRepository = AppDataSource.getRepository(User);
     const user = await userRepository.findOneBy({
