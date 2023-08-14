@@ -1,5 +1,4 @@
 import { ApplicationService, container } from '#application/index.js';
-import { type Logger, TYPES } from '#features/common/index.js';
 
 const app = await container.getAsync<ApplicationService>(ApplicationService);
 app.start();

@@ -1,6 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users', {
+  // Pass from config module
   schema: process.env.DB_SCHEMA,
 })
 export class User {
@@ -16,6 +17,6 @@ export class User {
   @Column()
   confirmed: boolean;
 
-  @Column({ name: 'confirmation_token', nullable: true })
-  confirmationToken: string;
+  @Column({ name: 'confirmation_token', nullable: true, type: 'text' })
+  confirmationToken: string | null;
 }

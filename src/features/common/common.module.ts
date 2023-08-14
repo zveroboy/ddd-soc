@@ -1,15 +1,18 @@
-import EventEmitter from 'events';
+import { AppDataSource } from '#database/index.js';
 import { ContainerModule, interfaces } from 'inversify';
 
 import { Config, config } from './config/index.js';
 import { TYPES } from './constants.js';
+import { DataAccess } from './db/index.js';
 import { Mailer, NodeMailer } from './email/index.js';
 import { ErrorController } from './error/index.js';
+import { EventBus } from './event-bus/index.js';
 import { ConsoleLogger, Logger } from './logger/index.js';
 
 export const commonModule = new ContainerModule((bind) => {
   bind<Config>(TYPES.Config).toConstantValue(config);
-  bind<EventEmitter>(TYPES.EventBus).toConstantValue(new EventEmitter());
+  bind<DataAccess>(TYPES.DataAccess).toConstantValue(AppDataSource);
+  bind<EventBus>(TYPES.EventBus).to(EventBus).inSingletonScope();
   bind<Mailer>(TYPES.Mailer)
     .toDynamicValue((context: interfaces.Context) => {
       const configService = context.container.get<Config>(TYPES.Config);

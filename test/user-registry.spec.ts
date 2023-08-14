@@ -7,35 +7,31 @@
 /* eslint-disable max-lines-per-function */
 import { ApplicationService, container } from '#application/index.js';
 import AppDataSource from '#database/data-source.js';
-import { RegisterDto, User } from '#features/auth/index.js';
-import { Logger, Mailer, TYPES } from '#features/common/index.js';
+import { User } from '#entities/user/index.js';
+import { RegisterDto } from '#features/auth/index.js';
+import { EventBus, Logger, Mailer, TYPES } from '#features/common/index.js';
 import { assert as assertChai } from 'chai';
 import { StatusCodes } from 'http-status-codes';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
-import { EventEmitter } from 'node:stream';
 import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import request from 'supertest';
 import { Repository } from 'typeorm';
 import { ZodIssue } from 'zod';
-
-type MockTracker = typeof mock;
-// type MockFn<T> = MockTracker['fn']<T>;
-// type Mock<T> = MockFn<T>;
 
 const MutedLoggerService = {
   error: mock.fn(),
   info: mock.fn(),
 } satisfies Logger;
 
-const MailerService = {
-  send: mock.fn(() => {}),
-} satisfies Mailer;
+// const MailerService = {
+//   send: mock.fn(() => {}),
+// } satisfies Mailer;
 
 const resetCalls = () => {
   MutedLoggerService.error.mock.resetCalls();
   MutedLoggerService.info.mock.resetCalls();
-  MailerService.send.mock.resetCalls();
+  // MailerService.send.mock.resetCalls();
 };
 
 let userRepository: Repository<User>;
@@ -44,7 +40,7 @@ let application: ApplicationService;
 describe('User', () => {
   before(async () => {
     container.rebind<Logger>(TYPES.Logger).toConstantValue(MutedLoggerService);
-    container.rebind<Mailer>(TYPES.Mailer).toConstantValue(MailerService);
+    // container.rebind<Mailer>(TYPES.Mailer).toConstantValue(MailerService);
     application = await container.getAsync<ApplicationService>(ApplicationService);
     userRepository = AppDataSource.getRepository(User);
   });
@@ -83,36 +79,35 @@ describe('User', () => {
     }
   });
 
+  const register = async (registerDto: RegisterDto) => {
+    {
+      const [, count] = await userRepository.findAndCount();
+      assert.equal(count, 0);
+    }
+
+    {
+      const response = await request(application.app).post('/auth/register').send(registerDto);
+      assert.equal(response.status, StatusCodes.CREATED);
+    }
+  };
+
   describe('Pass registration', () => {
     const registerDto: RegisterDto = {
       email: 'john.smith+1@gmail.com',
       password: 'john.smith.123',
     };
 
-    const register = async () => {
-      {
-        const [, count] = await userRepository.findAndCount();
-        assert.equal(count, 0);
-      }
-
-      {
-        const response = await request(application.app).post('/auth/register').send(registerDto);
-        assert.equal(response.status, StatusCodes.CREATED);
-      }
-    };
-
     it('should correctly register and login', async (ctx) => {
-      const eventBus = container.get<EventEmitter>(TYPES.EventBus);
-      const userRegisteredPromise = once(eventBus, 'user.registere');
+      const eventBus = container.get<EventBus>(TYPES.EventBus);
+      const userRegisteredPromise = once(eventBus, 'user.registered');
       const mockedEmit = ctx.mock.method(eventBus, 'emit');
-      await register();
+      await register(registerDto);
       await userRegisteredPromise;
 
       {
         const [, count] = await userRepository.findAndCount();
         assert.equal(count, 1);
         assert.equal(mockedEmit.mock.calls.length, 1);
-        // assert.equal(MailerService.send.mock.calls.length, 1);
       }
 
       {
@@ -138,32 +133,73 @@ describe('User', () => {
       }
 
       {
-        const response = await request(application.app).post('/auth/login').send({
-          email: 'john.smith+1@gmail.com',
-          password: 'john.smith.123',
-        });
+        const response = await request(application.app).post('/auth/login').send(registerDto);
 
         assert.equal(response.status, StatusCodes.OK);
       }
+
+      mockedEmit.mock.resetCalls();
     });
 
-    it.skip('should not allow register twice', async (ctx) => {
-      await register();
+    it('should not allow register twice', async () => {
+      await register(registerDto);
 
       {
         const [[user], count] = await userRepository.findAndCount();
         assert.equal(count, 1);
         assert.notEqual(user.confirmationToken, 0);
         assertChai.include(user, { confirmed: false, email: registerDto.email });
-        assert.equal(MailerService.send.mock.calls.length, 1);
-        // assert.equal(sendMock.mock.calls.length, 1);
-        // assert.equal(sendMock.mock.calls[0].arguments[0], user.confirmationToken);
       }
 
       {
         const response = await request(application.app).post('/auth/register').send(registerDto);
         assert.equal(response.status, StatusCodes.UNPROCESSABLE_ENTITY);
         assert.ok(response.body.message.includes(`duplicate`));
+      }
+    });
+  });
+
+  describe('Confirm', () => {
+    const eventBus = container.get<EventBus>(TYPES.EventBus);
+
+    it('should confirm user after registration', async () => {
+      await register({
+        email: 'john.smith+2@gmail.com',
+        password: 'john.smith.123',
+      });
+
+      {
+        const [[user]] = await userRepository.findAndCount();
+        assert.ok(!user.confirmed);
+
+        const userConfirmedPromise = once(eventBus, 'user.confirmed');
+        const response = await request(application.app).post(`/auth/confirm/${user.confirmationToken}`).send({
+          token: user.confirmationToken,
+        });
+        await userConfirmedPromise;
+        assert.equal(response.status, StatusCodes.OK);
+      }
+
+      {
+        const [[user]] = await userRepository.findAndCount();
+        assert.ok(user.confirmed);
+      }
+    });
+
+    it("shouldn't confirm user with wrong token", async () => {
+      await register({
+        email: 'john.smith+2@gmail.com',
+        password: 'john.smith.123',
+      });
+
+      {
+        const [[user]] = await userRepository.findAndCount();
+        assert.ok(!user.confirmed);
+
+        const response = await request(application.app).post('/auth/confirm/wrong_wrong_wrong_wrong_wrong_wr').send({
+          token: user.confirmationToken,
+        });
+        assert.equal(response.status, StatusCodes.NOT_FOUND);
       }
     });
   });

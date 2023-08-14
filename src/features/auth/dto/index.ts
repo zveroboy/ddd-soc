@@ -1,3 +1,4 @@
+import { bytesToHexLength } from '#shared/bytes.js';
 import { z } from 'zod';
 
 import { CONFIRMATION_TOKEN_LENGTH } from '../const.js';
@@ -21,7 +22,7 @@ export const LoginSchema = z.object({
 export type LoginDto = z.infer<typeof LoginSchema>;
 
 export const ConfirmationSchema = z.object({
-  token: z.string().length(CONFIRMATION_TOKEN_LENGTH),
+  token: z.string().length(bytesToHexLength(CONFIRMATION_TOKEN_LENGTH)),
 });
 
-export type ConfirmationDto = z.infer<typeof ConfirmationSchema>;
+export type ConfirmationParams = z.infer<typeof ConfirmationSchema>;

@@ -1,6 +1,5 @@
-import AppDataSource from '#database/data-source.js';
 import { AuthController } from '#features/auth/index.js';
-import { type Config, ErrorController, type Logger, TYPES } from '#features/common/index.js';
+import { type Config, type DataAccess, ErrorController, type Logger, TYPES } from '#features/common/index.js';
 import express, { Express, Request, Response } from 'express';
 import { inject, injectable, interfaces } from 'inversify';
 
@@ -12,7 +11,8 @@ export class ApplicationService {
     @inject(AuthController) private authController: AuthController,
     @inject(ErrorController) private errorController: ErrorController,
     @inject(TYPES.Config) private config: Config,
-    @inject(TYPES.Logger) private logger: Logger
+    @inject(TYPES.Logger) private logger: Logger,
+    @inject(TYPES.DataAccess) private dataAccess: DataAccess
   ) {
     this.app = express();
     this.app.use(express.json());
@@ -34,20 +34,20 @@ export class ApplicationService {
   }
 
   async destroy() {
-    /** @todo Replace to injected dependency */
-    if (AppDataSource.isInitialized) {
-      await AppDataSource.destroy();
+    if (this.dataAccess.isInitialized) {
+      await this.dataAccess.destroy();
     }
   }
 
   static async create({ container }: interfaces.Context): Promise<ApplicationService> {
-    /** @todo Replace to injected dependency */
-    await AppDataSource.initialize();
+    const dataAccess = container.get<DataAccess>(TYPES.DataAccess);
+    await dataAccess.initialize();
     return new ApplicationService(
       container.get(AuthController),
       container.get(ErrorController),
       container.get(TYPES.Config),
-      container.get(TYPES.Logger)
+      container.get(TYPES.Logger),
+      dataAccess
     );
   }
 }

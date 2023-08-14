@@ -5,7 +5,7 @@ import 'reflect-metadata';
 
 import { appModule } from './application.module.js';
 
-const container = new Container();
+const container = new Container({ skipBaseClassChecks: true });
 container.load(commonModule, authModule, appModule);
 
 // container.bind<Config>(ConfigId).toConstantValue(config);
