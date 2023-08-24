@@ -1,4 +1,4 @@
-import { ApplicationService, container } from '#application/index.js';
+import { ApplicationService, container } from '#infrastructure/index.js';
 import { StatusCodes } from 'http-status-codes';
 import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';

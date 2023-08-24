@@ -1,4 +1,4 @@
-import { ApplicationService, container } from '#application/index.js';
+import { ApplicationService, container } from '#infrastructure/index.js';
 
 const app = await container.getAsync<ApplicationService>(ApplicationService);
 app.start();
