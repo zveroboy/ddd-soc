@@ -8,10 +8,10 @@ import { EventBus } from '../../core/index.js';
 import { RegisterCommand } from './confirm.command.js';
 
 @injectable()
-export class RegisterCommandHandler implements CommandHandler<RegisterCommand> {
+export class ConfirmationCommandHandler implements CommandHandler<ConfirmationCommand> {
   constructor(@inject(TYPES.EventBus) private bus: EventBus, @inject(AuthService) private authService: AuthService) {}
 
-  async handle(command: RegisterCommand): Promise<void> {
+  async handle(command: ConfirmationCommand): Promise<void> {
     this.bus.dispatch(await this.authService.registerUser(command.dto));
   }
 }
